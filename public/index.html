@@ -1,20 +1,21 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Monitoring Screen</title>
+<title>Screen Monitoring</title>
 
 <style>
 
 body{
-background:#111;
+background:#000;
 color:white;
 text-align:center;
 font-family:sans-serif;
 }
 
-canvas{
-border:2px solid #333;
-margin-top:20px;
+#video{
+width:720px;
+height:1280px;
+background:black;
 }
 
 </style>
@@ -23,32 +24,31 @@ margin-top:20px;
 
 <body>
 
-<h2>Live Screen Monitoring</h2>
+<h2>Live Screen</h2>
 
-<canvas id="screen" width="720" height="1280"></canvas>
+<canvas id="video"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/broadway-player@1.0.0/Player.js"></script>
 
 <script>
 
-let ws = new WebSocket(
-"wss://wsmonitoring-production.up.railway.app"
-)
+let player = new Player({
+    useWorker:true,
+    reuseMemory:true,
+    webgl:true
+})
 
-let canvas = document.getElementById("screen")
-let ctx = canvas.getContext("2d")
+document.body.appendChild(player.canvas)
 
-ws.binaryType="arraybuffer"
+let ws = new WebSocket("wss://wsmonitoring-production.up.railway.app")
+
+ws.binaryType = "arraybuffer"
 
 ws.onmessage = function(event){
 
-    let blob = new Blob([event.data],{type:"image/jpeg"})
+    let data = new Uint8Array(event.data)
 
-    let img = new Image()
-
-    img.onload=function(){
-        ctx.drawImage(img,0,0,canvas.width,canvas.height)
-    }
-
-    img.src = URL.createObjectURL(blob)
+    player.decode(data)
 
 }
 
