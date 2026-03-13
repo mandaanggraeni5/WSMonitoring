@@ -1,30 +1,38 @@
-const WebSocket = require("ws");
+const express = require("express")
+const WebSocket = require("ws")
+const http = require("http")
 
-const PORT = process.env.PORT || 8080;
+const app = express()
 
-const wss = new WebSocket.Server({ port: PORT });
+app.use(express.static("public"))
 
-console.log("WebSocket server running on port", PORT);
+const server = http.createServer(app)
 
-wss.on("connection", function connection(ws) {
+const wss = new WebSocket.Server({ server })
 
-  console.log("Client connected");
+let viewers = []
 
-  ws.on("message", function incoming(data) {
+wss.on("connection",(ws,req)=>{
 
-    console.log("Frame received size:", data.length);
+    console.log("Client connected")
 
-    // broadcast ke client lain (viewer)
-    wss.clients.forEach(function(client) {
-      if (client !== ws && client.readyState === WebSocket.OPEN) {
-        client.send(data);
-      }
-    });
+    ws.on("message",(data)=>{
 
-  });
+        // broadcast frame ke semua viewer
+        viewers.forEach(v=>{
+            if(v.readyState===WebSocket.OPEN){
+                v.send(data)
+            }
+        })
 
-  ws.on("close", function() {
-    console.log("Client disconnected");
-  });
+    })
 
-});
+    ws.on("close",()=>{
+        console.log("Client disconnected")
+    })
+
+})
+
+server.listen(process.env.PORT || 8080,()=>{
+    console.log("Server running")
+})
