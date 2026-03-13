@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Monitoring Screen</title>
+
+<style>
+
+body{
+background:#111;
+color:white;
+text-align:center;
+font-family:sans-serif;
+}
+
+canvas{
+border:2px solid #333;
+margin-top:20px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h2>Live Screen Monitoring</h2>
+
+<canvas id="screen" width="720" height="1280"></canvas>
+
+<script>
+
+let ws = new WebSocket(
+"wss://wsmonitoring-production.up.railway.app"
+)
+
+let canvas = document.getElementById("screen")
+let ctx = canvas.getContext("2d")
+
+ws.binaryType="arraybuffer"
+
+ws.onmessage = function(event){
+
+    let blob = new Blob([event.data],{type:"image/jpeg"})
+
+    let img = new Image()
+
+    img.onload=function(){
+        ctx.drawImage(img,0,0,canvas.width,canvas.height)
+    }
+
+    img.src = URL.createObjectURL(blob)
+
+}
+
+</script>
+
+</body>
+</html>
